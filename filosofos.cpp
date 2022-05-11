@@ -54,7 +54,8 @@ int main(void){
 	int i;
 	int j;
 
-	
+	/*printf("Ingresa el número de Filósofos\n");
+	scanf("%d", NUM_FILOSOFOS);*/
 	
 	printf("Variable: %d \n", variable);
 	
