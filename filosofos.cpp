@@ -24,9 +24,6 @@ bool tomarTenedor(char* nom);
 //Método para dejar los tenedores
 void dejarTenedor(char* nom);
 
-//Recurso principal
-int variable = 0;
-
 //Tenedores
 int tenedores[NUM_FILOSOFOS];
 
@@ -40,10 +37,14 @@ int esTenedor[NUM_FILOSOFOS];
 //3 = comer
 int accion_Filo[NUM_FILOSOFOS];
 
+//Comida
+int comida = 10;
+
+//Plato --true=lleno, --false=vacio
+bool plato = true;
+
 //Mutex
 pthread_mutex_t mutex;
-//Semáforo
-//sem_t mutex;
 
 //Nombres de los filósofos
 char nomFilo[10][20] = {"Confucio", "Pitágoras", "Platón", "Sócrates", "Epicurio", "Tales", "Heráclito", "Diógenes", "Sófocles", "Zenón"};
@@ -54,10 +55,8 @@ int main(void){
 	int i;
 	int j;
 
-	/*printf("Ingresa el número de Filósofos\n");
-	scanf("%d", NUM_FILOSOFOS);*/
 	
-	printf("Variable: %d \n", variable);
+	printf("Total de Comida: %d \n", comida);
 	
 	pthread_t filosofos[NUM_FILOSOFOS];
 		
@@ -80,13 +79,13 @@ int main(void){
 	printf("Se crearon todos los filosofos\n");
 	
 	//Joint del arreglo de filosofos
-	for (i = 0; i < NUM_FILOSOFOS; i++){
+	for (j = 0; j < NUM_FILOSOFOS; j++){
 
-		pthread_join(filosofos[i], NULL);	
+		pthread_join(filosofos[j], NULL);	
 	}
 	
 	pthread_mutex_destroy(&mutex);
-	printf("Variable: %d \n", variable);
+	printf("Total Comida: %d \n", comida);
 
 	return 0;
 }
@@ -124,6 +123,20 @@ bool tomarTenedor(char* nom){
 	bool tenedorD = false;
 	bool tenedorI = false;
 	bool comer = false;
+
+	int tenedorUsado = 0;
+	for(int i = 0; i < NUM_FILOSOFOS; i++){
+		if (esTenedor[i] = 1){
+			tenedorUsado++;
+		}
+	}
+	
+	if (tenedorUsado == NUM_FILOSOFOS){
+		for (int i = 0; i < NUM_FILOSOFOS; i++){
+			esTenedor[i] = 0;
+		}
+		printf("Moderador:	Todos dejen los tenedores\n");
+	}
 	
 	if (esTenedor[pos] == 0){
 		esTenedor[pos] = 1;
@@ -167,6 +180,12 @@ void *comer (void *arg){
 		bool com = tomarTenedor(nombre);
 		if (com == true){
 			sleep(1);
+			if (comida == 0){
+				printf("\nSe terminó la Comida, filósofo %s repone\n", nombre);
+				comida = 10;
+			}
+			comida--;
+			printf("----Comida: %d\n", comida);
 			dejarTenedor(nombre);
 		}
 		pthread_mutex_unlock(&mutex);
