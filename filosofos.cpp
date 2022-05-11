@@ -54,19 +54,15 @@ int main(void){
 	int i;
 	int j;
 
-	//Estado de los nombres
-	int estNom[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	
 	
 	printf("Variable: %d \n", variable);
 	
 	pthread_t filosofos[NUM_FILOSOFOS];
-	//int identificadores[NUM_FILOSOFOS];
-	
+		
 	//Mutex
 	pthread_mutex_init(&mutex, NULL);
-	//Semáforo
-	//sem_init(&mutex, 0, 1);
-	//Inicialización de los tenedores y estado de los filosofos
+	
 	for (i = 0; i < NUM_FILOSOFOS; i++){
 		tenedores[i] = i;
 		accion_Filo[i] = 0;
@@ -75,43 +71,18 @@ int main(void){
 
 	//Creacion de los filosofos
 	for (i = 0; i < NUM_FILOSOFOS; i++){
-		//Si el nombre no ha sido usado, NUM_FILOSOFOS < 10
-		if (i%10 == 0){
-			j = 0;
-		}
-		if (estNom[j] == 0){
-			pthread_create(&filosofos[i], NULL, &comer, &nomFilo[i]);
-			estNom[i] += 1;
-		//Si el nombre ha sido usado, NUM_FILOSOFOS > 10
-		}else{
-			char num[1];
-			snprintf(num, sizeof(num), "%d", estNom[j]);
-			strcat(nomFilo[j], num);
-			pthread_create(&filosofos[i], NULL, &comer, &nomFilo[j]);
-			estNom[i] += 1;
-		}
-		j++;
-		printf("CREANDO FILOSOFOS\n");
+		pthread_create(&filosofos[i], NULL, &comer, &nomFilo[i]);
+		printf("CREANDO FILOSOFOS %s  \n", nomFilo[i]);
+		sleep(1);
 	}
 
 	printf("Se crearon todos los filosofos\n");
-
-	//Create Inicial
-	//pthread_create(&epicurio, NULL, &filosofo, &filo);
-	//pthread_create(&confucio, NULL, &filosofo, &filo2);
-
-	//Llamada a la función filosofo, no es necesario, dado que 
-	//es el comportamiento del thread.
-	//filosofo(filo);
-	//filosofo(filo2);
 	
 	//Joint del arreglo de filosofos
 	for (i = 0; i < NUM_FILOSOFOS; i++){
 
 		pthread_join(filosofos[i], NULL);	
 	}
-	//pthread_join(epicurio, NULL);
-	//pthread_join(confucio, NULL);
 	
 	pthread_mutex_destroy(&mutex);
 	printf("Variable: %d \n", variable);
@@ -183,15 +154,10 @@ void dejarTenedor(char* nom){
 	printAccion(0, nom, pos);
 }
 
-//Se hace uso del recurso compartido
+//Acción principal del filósofo
 void *comer (void *arg){
 
 	char *nombre = (char *)arg;
-	//int ident = *((int *)arg);
-	/*for (int i=1; i<=3; i++){
-		variable = variable + 1;
-		printf("Filósofo %s está comiendo : %d . Variable = %d \n", nombre, i, variable);
-	}*/
 
 	//Bucle infinito
 	for(int i = 0; true; i++){	
