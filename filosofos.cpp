@@ -189,7 +189,7 @@ void *comer (void *arg){
 		//Levanta Tenedores
 		bool com = tomarTenedor(nombre);
 		if (com == true){
-			sleep(3);
+			sleep(5);
 			if (comida <= 0){
 				printf("\nSe terminó la Comida, filósofo %s repone", nombre);
 				comida = 10;
