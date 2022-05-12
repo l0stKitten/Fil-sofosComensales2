@@ -9,6 +9,9 @@
 //Definimos globalmente un número de filosofos
 #define NUM_FILOSOFOS 5
 
+//Definimos la capacidad máxima del estómago
+#define maxEstomago 2
+
 // Metodo filosofo comer
 void *comer (void *arg);
 
@@ -45,6 +48,9 @@ bool plato = true;
 
 //Contador de restauranción de comida
 int contComida = 0;
+
+//Estómagos
+int estomagos[NUM_FILOSOFOS];
 
 //Mutex
 pthread_mutex_t mutex;
@@ -175,6 +181,7 @@ void dejarTenedor(char* nom){
 void *comer (void *arg){
 
 	char *nombre = (char *)arg;
+	int pos = posicion(nombre);
 
 	//Bucle infinito
 	for(int i = 0; true; i++){	
@@ -189,7 +196,10 @@ void *comer (void *arg){
 				contComida++;
 				printf("\nRestauró la comida %d veces\n", contComida);
 			}
-			comida--;
+			while (estomagos[pos] != maxEstomago){
+				estomagos[pos] += 1;
+				comida--;
+			}
 			printf("----Comida: %d\n", comida);
 			dejarTenedor(nombre);
 		}
