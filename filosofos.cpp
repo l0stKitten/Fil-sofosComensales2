@@ -43,6 +43,9 @@ int comida = 10;
 //Plato --true=lleno, --false=vacio
 bool plato = true;
 
+//Contador de restauranción de comida
+int contComida = 0;
+
 //Mutex
 pthread_mutex_t mutex;
 
@@ -183,6 +186,8 @@ void *comer (void *arg){
 			if (comida == 0){
 				printf("\nSe terminó la Comida, filósofo %s repone\n", nombre);
 				comida = 10;
+				contComida++;
+				printf("\nRestauró la comida %d veces\n", contComida);
 			}
 			comida--;
 			printf("----Comida: %d\n", comida);
