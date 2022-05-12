@@ -27,6 +27,9 @@ bool tomarTenedor(char* nom);
 //Método para dejar los tenedores
 void dejarTenedor(char* nom);
 
+//Método para pensar
+void pensar(char *nom);
+
 //Tenedores
 int tenedores[NUM_FILOSOFOS];
 
@@ -133,19 +136,7 @@ bool tomarTenedor(char* nom){
 	bool tenedorI = false;
 	bool comer = false;
 
-	int tenedorUsado = 0;
-	for(int i = 0; i < NUM_FILOSOFOS; i++){
-		if (esTenedor[i] = 1){
-			tenedorUsado++;
-		}
-	}
 	
-	if (tenedorUsado == NUM_FILOSOFOS){
-		for (int i = 0; i < NUM_FILOSOFOS; i++){
-			esTenedor[i] = 0;
-		}
-		printf("Moderador:	Todos dejen los tenedores\n");
-	}
 	
 	if (esTenedor[pos] == 0){
 		esTenedor[pos] = 1;
@@ -177,6 +168,12 @@ void dejarTenedor(char* nom){
 	printAccion(0, nom, pos);
 }
 
+void pensar (char *nom){
+	int pos = posicion(nom);
+	estomagos[pos] -= 1;
+	printf(".........%s está pensando........ estomago: %d\n", nom, estomagos[pos]);
+}
+
 //Acción principal del filósofo
 void *comer (void *arg){
 
@@ -185,26 +182,45 @@ void *comer (void *arg){
 
 	//Bucle infinito
 	for(int i = 0; true; i++){	
-		//Levanta Tenedores
 		pthread_mutex_lock(&mutex);
+
+		//Comienzan pensando
+		pensar(nombre);
+		//Levanta Tenedores
 		bool com = tomarTenedor(nombre);
 		if (com == true){
-			sleep(1);
-			if (comida == 0){
-				printf("\nSe terminó la Comida, filósofo %s repone\n", nombre);
+			sleep(3);
+			if (comida <= 0){
+				printf("\nSe terminó la Comida, filósofo %s repone", nombre);
 				comida = 10;
 				contComida++;
-				printf("\nRestauró la comida %d veces\n", contComida);
+				printf("\nRestauró la comida %d veces\n\n", contComida);
 			}
 			while (estomagos[pos] != maxEstomago){
 				estomagos[pos] += 1;
 				comida--;
+				printf("		%s estómago: %d\n", nombre, estomagos[pos]);
 			}
-			printf("----Comida: %d\n", comida);
+			printf("		Filósofo %s lleno\n", nombre);
+			printf("\n-------Comida: %d---------\n", comida);
 			dejarTenedor(nombre);
 		}
+		/*int tenedorUsado = 0;
+		for(int i = 0; i < NUM_FILOSOFOS; i++){
+			if (esTenedor[i] = 1){
+				tenedorUsado++;
+			}
+		}
+		printf("\n____TenedorUsado %d_____\n", tenedorUsado);
+		if (tenedorUsado == NUM_FILOSOFOS){
+			for (int i = 0; i < NUM_FILOSOFOS; i++){
+				esTenedor[i] = 0;
+			}
+			printf("Moderador:	Todos dejen los tenedores\n");
+		}	*/
+		pensar(nombre);
 		pthread_mutex_unlock(&mutex);
-		sleep(2);
+		sleep(1);
 	}
 	
 	
