@@ -58,6 +58,9 @@ int estomagos[NUM_FILOSOFOS];
 //Mutex
 pthread_mutex_t mutex;
 
+//Mutex para los tenedores
+pthread_mutex_t palillos[NUM_FILOSOFOS];
+
 //Nombres de los filósofos
 char nomFilo[10][20] = {"Confucio", "Pitágoras", "Platón", "Sócrates", "Epicurio", "Tales", "Heráclito", "Diógenes", "Sófocles", "Zenón"};
 
@@ -79,6 +82,7 @@ int main(void){
 		tenedores[i] = i;
 		accion_Filo[i] = 0;
 		esTenedor[i] = 0;
+		pthread_mutex_init(&palillos[i], NULL);
 	}
 
 	//Creacion de los filosofos
@@ -136,9 +140,16 @@ bool tomarTenedor(char* nom){
 	bool tenedorI = false;
 	bool comer = false;
 
+	pthread_mutex_lock(&palillos[pos]);
+	pthread_mutex_lock(&palillos[(pos+1)%5]);
 	
+	printAccion(1, nom, pos);
+	printAccion(2, nom, pos);
+	printf("Se bloqueó el palillo derecho e izquierdo del filo: %s\n", nom);
+
+	printAccion(3, nom, pos);
 	
-	if (esTenedor[pos] == 0){
+	/*if (esTenedor[pos] == 0){
 		esTenedor[pos] = 1;
 		tenedorD = true;
 		printAccion(1, nom, pos);
@@ -155,16 +166,20 @@ bool tomarTenedor(char* nom){
 		comer = true;
 	}else{
 		printf("%d El filósofo %s no puede comer\n", pos, nom);
-	}
+	}*/
 
-	return comer;		
+	return true;		
 }
 
 //Dejar el tenedor
 void dejarTenedor(char* nom){
 	int pos = posicion(nom);
-	esTenedor[pos] = 0;
-	esTenedor[(pos+1)%5] = 0;
+	/*esTenedor[pos] = 0;
+	esTenedor[(pos+1)%5] = 0;*/
+
+	pthread_mutex_unlock(&palillos[pos]);
+	pthread_mutex_unlock(&palillos[(pos + 1) % 5]);	
+	
 	printAccion(0, nom, pos);
 }
 
