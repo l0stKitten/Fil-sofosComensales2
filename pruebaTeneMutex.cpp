@@ -139,12 +139,20 @@ bool tomarTenedor(char* nom){
 	bool tenedorD = false;
 	bool tenedorI = false;
 	bool comer = false;
-
-	pthread_mutex_lock(&palillos[pos]);
-	pthread_mutex_lock(&palillos[(pos+1)%5]);
 	
-	printAccion(1, nom, pos);
-	printAccion(2, nom, pos);
+	if (pos%2 == 0){
+		pthread_mutex_lock(&palillos[pos]);
+		printAccion(1, nom, pos);
+		pthread_mutex_lock(&palillos[(pos+1)%5]);
+		printAccion(2, nom, pos);
+
+	} else {
+		pthread_mutex_lock(&palillos[(pos+1)%5]);
+		printAccion(2, nom, pos);
+		pthread_mutex_lock(&palillos[pos]);
+		printAccion(1, nom, pos);
+	}
+
 	printf("Se bloqueó el palillo derecho e izquierdo del filo: %s\n", nom);
 
 	printAccion(3, nom, pos);
@@ -197,7 +205,7 @@ void *comer (void *arg){
 
 	//Bucle infinito
 	for(int i = 0; true; i++){	
-		pthread_mutex_lock(&mutex);
+		//pthread_mutex_lock(&mutex);
 
 		//Comienzan pensando
 		pensar(nombre);
@@ -211,7 +219,7 @@ void *comer (void *arg){
 				contComida++;
 				printf("\nRestauró la comida %d veces\n\n", contComida);
 			}
-			while (estomagos[pos] != maxEstomago){
+			while (estomagos[pos] != maxEstomago && comida!=0){
 				estomagos[pos] += 1;
 				comida--;
 				printf("		%s estómago: %d\n", nombre, estomagos[pos]);
@@ -232,9 +240,10 @@ void *comer (void *arg){
 				esTenedor[i] = 0;
 			}
 			printf("Moderador:	Todos dejen los tenedores\n");
-		}	*/
+		}
+		tenedorUsado = 0;	*/
 		pensar(nombre);
-		pthread_mutex_unlock(&mutex);
+		//pthread_mutex_unlock(&mutex);
 		sleep(1);
 	}
 	
