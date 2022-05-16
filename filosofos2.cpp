@@ -233,7 +233,7 @@ void *comer (void *arg){
 			int estomagoActual = estomagos[pos];
 			//Come hasta llenarse
 			int cont = 0;
-			while (estomagos[pos] != maxEstomago){
+			while (estomagos[pos] != maxEstomago || contEnergia[pos] != energia[pos]){
 
 				//Evalúa si se terminó la comida	
 				if (comida <= 0){
