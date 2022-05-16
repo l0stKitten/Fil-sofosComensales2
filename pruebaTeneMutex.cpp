@@ -61,6 +61,9 @@ pthread_mutex_t mutex;
 //Mutex para los tenedores
 pthread_mutex_t palillos[NUM_FILOSOFOS];
 
+//Semáforo para la comida
+sem_t comida_M;
+
 //Nombres de los filósofos
 char nomFilo[10][20] = {"Confucio", "Pitágoras", "Platón", "Sócrates", "Epicurio", "Tales", "Heráclito", "Diógenes", "Sófocles", "Zenón"};
 
@@ -77,7 +80,10 @@ int main(void){
 		
 	//Mutex
 	pthread_mutex_init(&mutex, NULL);
-	
+
+	//Semáforo (semáforo, 0thread/1procesos, inicialización del semáforo)
+	sem_init(&comida_M, 0, 1);	
+
 	for (i = 0; i < NUM_FILOSOFOS; i++){
 		tenedores[i] = i;
 		accion_Filo[i] = 0;
@@ -101,6 +107,7 @@ int main(void){
 	}
 	
 	pthread_mutex_destroy(&mutex);
+	sem_destroy(&comida_M);
 	printf("Total Comida: %d \n", comida);
 
 	return 0;
@@ -214,15 +221,20 @@ void *comer (void *arg){
 		if (com == true){
 			sleep(5);
 			if (comida <= 0){
+				sem_wait(&comida_M);
 				printf("\nSe terminó la Comida, filósofo %s repone", nombre);
 				comida = 10;
 				contComida++;
 				printf("\nRestauró la comida %d veces\n\n", contComida);
+				sem_post(&comida_M);
 			}
+			
 			while (estomagos[pos] != maxEstomago && comida!=0){
+				sem_wait(&comida_M);
 				estomagos[pos] += 1;
 				comida--;
 				printf("		%s estómago: %d\n", nombre, estomagos[pos]);
+				sem_post(&comida_M);
 			}
 			printf("		Filósofo %s lleno\n", nombre);
 			printf("\n-------Comida: %d---------\n", comida);
