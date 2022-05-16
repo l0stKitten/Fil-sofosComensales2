@@ -134,7 +134,7 @@ void printAccion(int acc, char* nom, int posi){
 	}else if (acc == 2){
 		printf("%d Filósofo %s levanta tenedor izquierdo\n", posi, nom);
 	}else if (acc == 3){
-		printf("%d Filósofo %s debe comer\n", posi, nom);
+		printf("%d |||||   Filósofo %s debe comer    |||||\n", posi, nom);
 	}
 }
 
@@ -176,11 +176,12 @@ void dejarTenedor(char* nom, int pos){
 	printAccion(0, nom, pos);
 }
 
-void pensar (char *nom, int pos){	
+void pensar (char *nom, int pos){
+	int maxE = energia[pos] * (-1);
 	estomagos[pos] -= 1;
-	energia[pos] -= 1;
+	contEnergia[pos] -= 1;
 	printf(".........%s está pensando........ estomago: %d\n		energía:  %d\n", nom, estomagos[pos], energia[pos]);
-	if (energia[pos] == 0){
+	if (contEnergia[pos] == maxE || estomagos[pos] == 0){
 		estadoF[pos] = 3;
 		printAccion(3, nom, pos);
 	}
@@ -196,19 +197,19 @@ void *comer (void *arg){
 	for(int i = 0; true; i++){
 
 		if (estadoF[pos] == 0){
-			sleep(4);
 			sem_wait(&energia_M);
 			pensar(nombre, pos);
 			sem_post(&energia_M);
-			sleep(1);
+			sleep(4);
 		} else {
 			tomarTenedor(nombre, pos);
-			sleep(5);
-			while (estomagos[pos] != maxEstomago){
+			while (estomagos[pos] != maxEstomago || contEnergia[pos] == 0){
 				sem_wait(&comida_M);
 				estomagos[pos] += 1;
+				contEnergia[pos] += 1;
 				comida--;
 				printf("		%s estómago: %d\n", nombre, estomagos[pos]);
+				printf("		%s energía: %d\n", nombre, contEnergia[pos]);
 				if (comida <= 0){
 					printf("\nSe terminó la comida, filósfo %s respone", nombre);
 					comida = comidaMax;
@@ -222,11 +223,11 @@ void *comer (void *arg){
 			printf("\n----------Comida %d----------\n", comida);
 			dejarTenedor(nombre, pos);
 			estadoF[pos] = 0;
-			
-			if (energia[pos] == 0){
+			sleep(8);
+			/*if ([pos] == 0){
 				srand(time(NULL));
 				energia[pos] = (rand() % 10) + 1;
-			}
+			}*/
 		}
 	}
 		
