@@ -11,6 +11,7 @@
 #define NUM_FILOSOFOS 5
 
 //Definimos la capacidad máxima del estómago
+//Máx del estómago 
 #define maxEstomago 5
 
 //Definir comida en el plato
@@ -86,10 +87,9 @@ int main(void){
 	srand(time(NULL));
 	printf("Total de Comida: %d \n", comida);
 	
+	//Hilos de los filósofos
 	pthread_t filosofos[NUM_FILOSOFOS];
 		
-	//Mutex
-	//pthread_mutex_init(&mutex, NULL);
 
 	//Semáforo (semáforo, 0thread/1procesos, inicialización del semáforo)
 	sem_init(&comida_M, 0, 1);	
@@ -101,6 +101,7 @@ int main(void){
 		energia[i] = (rand() % maxEstomago) + 1;
 		contEnergia[i] = energia[i];
 		estadoF[i] = 0;
+		// 1 Para que al pensar por primera vez quede en 0
 		estomagos[i] = 1;
 		pthread_mutex_init(&palillos[i], NULL);
 	}
@@ -120,10 +121,10 @@ int main(void){
 		pthread_join(filosofos[j], NULL);	
 	}
 	
+	//Destuir los semáforos y controladores mutex
 	pthread_mutex_destroy(&mutex);
 	sem_destroy(&comida_M);
 	sem_destroy(&energia_M);
-	printf("Total Comida: %d \n", comida);
 
 	return 0;
 }
@@ -179,10 +180,13 @@ void dejarTenedor(char* nom, int pos){
 	printAccion(0, nom, pos);
 }
 
+//Acción de pensar de los filósofos
 void pensar (char *nom, int pos){
 	estomagos[pos] -= 1;
 	contEnergia[pos] -= 1;
 	printf(".........%s está pensando........ estomago: %d\n		energía:  %d\n", nom, estomagos[pos], contEnergia[pos]);
+	
+	//Cuando tienen hambre (estomago=0) ir a comer
 	if (contEnergia[pos] <= 0 || estomagos[pos] == 0){
 		estadoF[pos] = 3;
 		printAccion(3, nom, pos);
@@ -259,9 +263,11 @@ void *comer (void *arg){
 				printf("	Filósofo %s con energía", nombre);
 			}
 			printf("\n----------Comida %d----------\n", comida);
+
+			//Deja Tenedores
 			dejarTenedor(nombre, pos);
 
-
+			//Al terminar de comer seguir pensando
 			estadoF[pos] = 0;
 			sleep(8);
 		}
