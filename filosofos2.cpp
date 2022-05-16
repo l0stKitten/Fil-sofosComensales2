@@ -33,6 +33,9 @@ void dejarTenedor(char* nom, int pos);
 //Método para pensar
 void pensar(char *nom, int pos);
 
+//Método para imprimir la suma total
+void printST(int ca, int c, int cc);
+
 //Acciones de los filosofos
 //0 = pensar
 //1 = tomar tenedor derecho
@@ -95,8 +98,7 @@ int main(void){
 		accion_Filo[i] = 0;
 		//Energía de los filósofos es aleatoria entre 1 y 10
 		energia[i] = (rand() % 10) + 1;
-		contEnergia[i] = 0;
-
+		contEnergia[i] = energia[i];
 		estadoF[i] = 0;
 		estomagos[i] = 1;
 		pthread_mutex_init(&palillos[i], NULL);
@@ -177,15 +179,24 @@ void dejarTenedor(char* nom, int pos){
 }
 
 void pensar (char *nom, int pos){
-	int maxE = energia[pos] * (-1);
+	//int maxE = energia[pos] * (-1);
 	estomagos[pos] -= 1;
 	contEnergia[pos] -= 1;
-	printf(".........%s está pensando........ estomago: %d\n		energía:  %d\n", nom, estomagos[pos], energia[pos]);
-	if (contEnergia[pos] == maxE || estomagos[pos] == 0){
+	printf(".........%s está pensando........ estomago: %d\n		energía:  %d\n", nom, estomagos[pos], contEnergia[pos]);
+	if (contEnergia[pos] <= 0 || estomagos[pos] == 0){
 		estadoF[pos] = 3;
 		printAccion(3, nom, pos);
 	}
 }
+
+//Imprimir las sumas Totales
+void printST(int ca, int c, int cc){
+	printf("\n------------------------------\n");
+	printf("   Diferencia: %d \n", ca-c);
+	printf("   Contador Estómago: %d \n", cc);
+	printf("\n------------------------------\n");
+}
+
 
 //Acción principal del filósofo
 void *comer (void *arg){
@@ -195,39 +206,56 @@ void *comer (void *arg){
 
 	//Bucle infinito
 	for(int i = 0; true; i++){
-
+		int comidaActual;
+		//Pensar
 		if (estadoF[pos] == 0){
 			sem_wait(&energia_M);
 			pensar(nombre, pos);
 			sem_post(&energia_M);
 			sleep(4);
+		//Comer
 		} else {
+			//Toma tenedores
 			tomarTenedor(nombre, pos);
-			while (estomagos[pos] != maxEstomago || contEnergia[pos] == 0){
+			//Come hasta llenarse
+			while (estomagos[pos] != maxEstomago){
+				//Semáforo de la comida
 				sem_wait(&comida_M);
-				estomagos[pos] += 1;
-				contEnergia[pos] += 1;
-				comida--;
-				printf("		%s estómago: %d\n", nombre, estomagos[pos]);
-				printf("		%s energía: %d\n", nombre, contEnergia[pos]);
+
+				//Evalúa si se terminó la comida	
 				if (comida <= 0){
 					printf("\nSe terminó la comida, filósfo %s respone", nombre);
 					comida = comidaMax;
 					contComida++;
 					printf("\n se restauró la comida %d veces\n\n", contComida);
-					
 				}
+				estomagos[pos] += 1;
+				//No sobrepasar el max de energía
+				if (contEnergia[pos] != energia[pos]){
+					contEnergia[pos] += 1;
+				}
+				comida--;
+				printf("		%s estómago: %d\n", nombre, estomagos[pos]);
+				printf("		%s energía: %d\n", nombre, contEnergia[pos]);	
+				
 				sem_post(&comida_M);
 			}
-			printf("	Filósofo %s lleno\n", nombre);
+			//Indica si está lleno
+			if (estomagos[pos] == maxEstomago){
+				printf("	Filósofo %s lleno\n", nombre);
+			}
+			//Indica si llenó toda su energía
+			if (contEnergia[pos] == energia[pos]){
+				printf("	Filósofo %s con energía", nombre);
+			}
 			printf("\n----------Comida %d----------\n", comida);
 			dejarTenedor(nombre, pos);
+
+			//Sumas Totales
+			printST(comidaActual, comida, contComida);
+
 			estadoF[pos] = 0;
 			sleep(8);
-			/*if ([pos] == 0){
-				srand(time(NULL));
-				energia[pos] = (rand() % 10) + 1;
-			}*/
 		}
 	}
 		
