@@ -227,6 +227,7 @@ void *comer (void *arg){
 			tomarTenedor(nombre, pos);
 			
 			//Semáforo de la comida
+			//Espera
 			sem_wait(&comida_M);
 			int comidaActual = comida;
 			int estomagoActual = estomagos[pos];
@@ -253,6 +254,8 @@ void *comer (void *arg){
 			}
 			//Sumas Totales
 			printST(comidaActual, comida, cont, estomagos[pos]-estomagoActual);
+
+			//Postea que terminó para que pase el siguiente
 			sem_post(&comida_M);
 			//Indica si está lleno
 			if (estomagos[pos] == maxEstomago){
