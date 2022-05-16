@@ -30,12 +30,6 @@ void dejarTenedor(char* nom, int pos);
 //Método para pensar
 void pensar(char *nom);
 
-//Tenedores
-int tenedores[NUM_FILOSOFOS];
-
-//Estado de tenedores
-int esTenedor[NUM_FILOSOFOS];
-
 //Acciones de los filosofos
 //0 = pensar
 //1 = tomar tenedor derecho
@@ -43,11 +37,10 @@ int esTenedor[NUM_FILOSOFOS];
 //3 = comer
 int accion_Filo[NUM_FILOSOFOS];
 
+//Energía de cada Filósofo
+int energia[NUM_FILOSOFOS];
 //Comida
 int comida = 10;
-
-//Plato --true=lleno, --false=vacio
-bool plato = true;
 
 //Contador de restauranción de comida
 int contComida = 0;
@@ -58,7 +51,7 @@ int estomagos[NUM_FILOSOFOS];
 //Mutex
 pthread_mutex_t mutex;
 
-//Mutex para los tenedores
+//Mutex / tenedores
 pthread_mutex_t palillos[NUM_FILOSOFOS];
 
 //Semáforo para la comida
@@ -69,34 +62,34 @@ sem_t tenedor_M;
 char nomFilo[10][20] = {"Confucio", "Pitágoras", "Platón", "Sócrates", "Epicurio", "Tales", "Heráclito", "Diógenes", "Sófocles", "Zenón"};
 
 int main(void){
-	//Array de nombres de filósofos
 	
 	int i;
 	int j;
 
-	
+	//inicializamos la semilla del rand()
+	srand(time(NULL));
 	printf("Total de Comida: %d \n", comida);
 	
 	pthread_t filosofos[NUM_FILOSOFOS];
 		
 	//Mutex
-	pthread_mutex_init(&mutex, NULL);
+	//pthread_mutex_init(&mutex, NULL);
 
 	//Semáforo (semáforo, 0thread/1procesos, inicialización del semáforo)
 	sem_init(&comida_M, 0, 1);	
 	sem_init(&tenedor_M, 0, 1);
 
 	for (i = 0; i < NUM_FILOSOFOS; i++){
-		tenedores[i] = i;
 		accion_Filo[i] = 0;
-		esTenedor[i] = 0;
+		//Energía de los filósofos es aleatoria entre 1 y 9
+		energia[i] = (rand() % 9) + 1;
 		pthread_mutex_init(&palillos[i], NULL);
 	}
 
 	//Creacion de los filosofos
 	for (i = 0; i < NUM_FILOSOFOS; i++){
 		pthread_create(&filosofos[i], NULL, &comer, &nomFilo[i]);
-		printf("CREANDO FILOSOFOS %s  \n", nomFilo[i]);
+		printf("CREANDO FILOSOFOS %s ..... Energía %d \n", nomFilo[i], energia[i]);
 		sleep(1);
 	}
 
@@ -143,93 +136,23 @@ int posicion(char* nom){
 
 //Tomar el tenedor
 void tomarTenedor(char* nom, int pos){
-
-
-	//int pos = posicion(nom);
-	bool tenedorD = false;
-	bool tenedorI = false;
-	bool comer = false;
 	
 	if (pos%2 == 0){
-		/*if (esTenedor[pos] == 0){
-			esTenedor[pos] = 1;
-			tenedorD = true;
-			pthread_mutex_lock(&palillos[pos]);
-			printAccion(1, nom, pos);
-		}
-		if (esTenedor[(pos+1)%5] == 0){
-			esTenedor[(pos+1)%5] = 1;
-			tenedorI = true;
-			pthread_mutex_lock(&palillos[(pos+1)%5]);
-			printAccion(2, nom, pos);
-		}
-		if (tenedorD == true && tenedorI == true){
-			printAccion(3, nom, pos);
-			comer = true;
-		} else {
-			printf(" %d El filósofo %s no puede comer\n", pos, nom);
-		}*/
 		pthread_mutex_lock(&palillos[pos]);
 		printAccion(1, nom, pos);
 		pthread_mutex_lock(&palillos[(pos+1)%5]);
 		printAccion(2, nom, pos);
 
 	} else {
-		/*if (esTenedor[(pos+1)%5] == 0){
-			esTenedor[(pos+1)%5] = 1;
-			tenedorI = true;
-			pthread_mutex_lock(&palillos[(pos+1)%5]);
-			printAccion(2, nom, pos);
-		}
-		if (esTenedor[pos] == 0){
-			esTenedor[pos] = 1;
-			tenedorD = true;
-			pthread_mutex_lock(&palillos[pos]);
-			printAccion(1, nom, pos);
-		}
-		if (tenedorI == true && tenedorD == true){
-			printAccion(3, nom, pos);
-			comer = true;
-		} else {
-			printf(" %d El filósofo %s no puede comer\n", pos, nom);
-		}*/
 		pthread_mutex_lock(&palillos[(pos+1)%5]);
 		printAccion(2, nom, pos);
 		pthread_mutex_lock(&palillos[pos]);
 		printAccion(1, nom, pos);
-	}
-
-	//printf("Se bloqueó el palillo derecho e izquierdo del filo: %s\n", nom);
-
-	//printAccion(3, nom, pos);
-	
-	/*if (esTenedor[pos] == 0){
-		esTenedor[pos] = 1;
-		tenedorD = true;
-		printAccion(1, nom, pos);
-	}
-	
-	if (esTenedor[(pos+1)%5] == 0){
-		esTenedor[(pos+1)%5] = 1;
-		tenedorI = true;
-		printAccion(2, nom, pos);
-	}
-
-	if (tenedorD == true && tenedorI == true){
-		printAccion(3, nom, pos);
-		comer = true;
-	}else{
-		printf("%d El filósofo %s no puede comer\n", pos, nom);
-	}*/
-
-	//return true;		
+	}	
 }
 
 //Dejar el tenedor
 void dejarTenedor(char* nom, int pos){
-	//int pos = posicion(nom);
-	//esTenedor[pos] = 0;
-	//esTenedor[(pos+1)%5] = 0;
 
 	pthread_mutex_unlock(&palillos[pos]);
 	pthread_mutex_unlock(&palillos[(pos + 1) % 5]);	
@@ -250,59 +173,38 @@ void *comer (void *arg){
 	int pos = posicion(nombre);
 
 	//Bucle infinito
-	for(int i = 0; true; i++){	
-		//pthread_mutex_lock(&mutex);
+	for(int i = 0; i<2; i++){
 
-		//sem_wait(&comida_M);
 		//Comienzan pensando
 		pensar(nombre);
+
 		//Levanta Tenedores
-		//bool com = tomarTenedor(nombre, pos);
 		tomarTenedor(nombre, pos);
-		//if (com == true){
-			sleep(5);
-			if (comida <= 0){
-				sem_wait(&comida_M);
-				printf("\nSe terminó la Comida, filósofo %s repone", nombre);
-				comida = 10;
-				contComida++;
-				printf("\nRestauró la comida %d veces\n\n", contComida);
-				sem_post(&comida_M);
-			}
+		sleep(5);
+		if (comida <= 0){
+			sem_wait(&comida_M);
+			printf("\nSe terminó la Comida, filósofo %s repone", nombre);
+			comida = 10;
+			contComida++;
+			printf("\nRestauró la comida %d veces\n\n", contComida);
+			sem_post(&comida_M);
+		}
 			
-			while (estomagos[pos] != maxEstomago && comida!=0){
-				sem_wait(&comida_M);
-				estomagos[pos] += 1;
-				comida--;
-				printf("		%s estómago: %d\n", nombre, estomagos[pos]);
-				sem_post(&comida_M);
-			}
-			printf("		Filósofo %s lleno\n", nombre);
-			printf("\n-------Comida: %d---------\n", comida);
-		
-			dejarTenedor(nombre, pos);
-		
-		//}
-		/*int tenedorUsado = 0;
-		for(int i = 0; i < NUM_FILOSOFOS; i++){
-			if (esTenedor[i] = 1){
-				tenedorUsado++;
-			}
+		while (estomagos[pos] != maxEstomago && comida!=0){
+			sem_wait(&comida_M);
+			estomagos[pos] += 1;
+			comida--;
+			printf("		%s estómago: %d\n", nombre, estomagos[pos]);
+			sem_post(&comida_M);
 		}
-		printf("\n____TenedorUsado %d_____\n", tenedorUsado);
-		if (tenedorUsado == NUM_FILOSOFOS){
-			for (int i = 0; i < NUM_FILOSOFOS; i++){
-				esTenedor[i] = 0;
-			}
-			printf("Moderador:	Todos dejen los tenedores\n");
-		}
-		tenedorUsado = 0;	*/
+		printf("		Filósofo %s lleno\n", nombre);
+		printf("\n-------Comida: %d---------\n", comida);
+		
+		dejarTenedor(nombre, pos);
+		
 		pensar(nombre);
-		//sem_post(&comida_M);
-		//pthread_mutex_unlock(&mutex);
 		sleep(1);
 	}
-	
-	
+		
 	return NULL;
 }
