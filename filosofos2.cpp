@@ -7,6 +7,7 @@
 #include<semaphore.h>
 
 //Definimos globalmente un número de filosofos
+//Debe ser menor de 20 que es el máximo de nombres disponibles
 #define NUM_FILOSOFOS 5
 
 //Definimos la capacidad máxima del estómago
